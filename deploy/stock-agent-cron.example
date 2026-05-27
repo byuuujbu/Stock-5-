@@ -1,0 +1,8 @@
+# Install with: crontab -e
+# Server timezone should be Asia/Seoul.
+# Weekdays 15:45 KST: run selector and Telegram notification.
+45 15 * * 1-5 cd /opt/stock-agent && /opt/stock-agent/scripts/run_daily.sh
+
+# Optional: refresh KOSPI/KOSDAQ universe every weekday before market close.
+30 14 * * 1-5 cd /opt/stock-agent && /opt/stock-agent/scripts/update_universe.sh >> logs/universe.out.log 2>> logs/universe.err.log
+

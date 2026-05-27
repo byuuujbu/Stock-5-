@@ -1,0 +1,18 @@
+[Unit]
+Description=Domestic Stock Selection Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/stock-agent
+Environment=PORT=8000
+ExecStart=/opt/stock-agent/scripts/run_web.sh
+Restart=always
+RestartSec=5
+User=stockagent
+Group=stockagent
+
+[Install]
+WantedBy=multi-user.target
+

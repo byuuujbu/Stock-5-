@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.py[cod]
+.env
+data/*.sqlite3
+data/dart_corp_codes.json
+data/kis_token.json
+data/universe.csv
+logs/
+.pytest_cache/

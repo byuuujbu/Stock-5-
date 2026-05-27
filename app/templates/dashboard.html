@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="meta">
+    <div>
+      <h2>{{ run_date or "선정 결과 없음" }}</h2>
+      <div class="muted">거래대금 1조 이상, 최근 3년 영업이익 흑자, 당일 상승률 5% 이상</div>
+    </div>
+    <div class="muted">분류별 거래대금 내림차순 최대 10개</div>
+  </section>
+
+  {% if stocks %}
+    {% for group in stock_groups %}
+      <section class="section">
+        <section class="meta">
+          <div>
+            <h2>{{ group.label }}</h2>
+            <div class="muted">거래대금 1조 이상, 당일 상승률 5% 이상</div>
+          </div>
+          <div class="muted">{{ group.stocks|length }}개</div>
+        </section>
+        {% if group.stocks %}
+          <section class="stock-list">
+            {% for stock in group.stocks %}
+              <article class="stock">
+                <div class="stock-head">
+                  <div>
+                    <div class="name">{{ loop.index }}. {{ stock.name }}</div>
+                    <div class="ticker">{{ stock.market }} · {{ stock.ticker }} · {{ stock.profit_tier }}</div>
+                  </div>
+                  <div>
+                    <div class="metric-label">종가</div>
+                    <div class="metric-value">{{ "{:,}".format(stock.close_price) }}원</div>
+                  </div>
+                  <div>
+                    <div class="metric-label">상승률</div>
+                    <div class="metric-value positive">+{{ "%.2f"|format(stock.change_rate) }}%</div>
+                  </div>
+                  <div>
+                    <div class="metric-label">거래대금</div>
+                    <div class="metric-value">{{ stock.trading_value|money_krw }}</div>
+                  </div>
+                </div>
+                <div class="articles">
+                  {% if stock.articles %}
+                    {% for article in stock.articles %}
+                      <div class="article">
+                        <a href="{{ article.link }}" target="_blank" rel="noopener noreferrer">{{ article.title }}</a>
+                        <span class="muted">{{ article.source }} · {{ article.published_at }}</span>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <div class="muted">최근 7일 관련 기사 없음</div>
+                  {% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          </section>
+        {% else %}
+          <section class="empty">
+            <strong>해당 분류 선정 종목이 없습니다.</strong>
+          </section>
+        {% endif %}
+      </section>
+      {% endfor %}
+  {% else %}
+    <section class="empty">
+      <strong>저장된 선정 결과가 없습니다.</strong>
+      <div class="muted">먼저 <code>py -m app.agent --sample</code> 또는 <code>py -m app.agent</code>를 실행하세요.</div>
+    </section>
+  {% endif %}
+
+  <section class="section">
+    <section class="meta">
+      <div>
+        <h2>IPO Calendar</h2>
+        <div class="muted">이번 달 청약 또는 상장 예정 기업</div>
+      </div>
+      <div class="muted">Source: IPO Korea</div>
+    </section>
+
+    {% if ipos %}
+      <div class="ipo-list">
+        {% for ipo in ipos %}
+          <article class="ipo">
+            <div class="ipo-title">
+              <div class="ipo-name">{{ ipo.company_name }}</div>
+              <span class="badge">{{ ipo.status or "IPO" }}</span>
+            </div>
+            <div class="ipo-grid">
+              <div>
+                <div class="metric-label">청약일</div>
+                <div class="metric-value">{{ ipo.subscription_start or "-" }}{% if ipo.subscription_end %} ~ {{ ipo.subscription_end }}{% endif %}</div>
+              </div>
+              <div>
+                <div class="metric-label">상장일</div>
+                <div class="metric-value">{{ ipo.listing_date or "-" }}</div>
+              </div>
+              <div>
+                <div class="metric-label">희망공모가</div>
+                <div class="metric-value">
+                  {% if ipo.price_min and ipo.price_max %}
+                    {{ "{:,}".format(ipo.price_min) }} ~ {{ "{:,}".format(ipo.price_max) }}원
+                  {% else %}
+                    -
+                  {% endif %}
+                </div>
+              </div>
+              <div>
+                <div class="metric-label">확정공모가</div>
+                <div class="metric-value">{% if ipo.final_price %}{{ "{:,}".format(ipo.final_price) }}원{% else %}-{% endif %}</div>
+              </div>
+            </div>
+            <div class="ticker" style="margin-top: 12px;">{{ ipo.lead_managers or "주관사 미정" }}</div>
+            <div class="articles" style="margin-top: 12px;">
+              <div class="article">
+                <a href="{{ ipo.source_url }}" target="_blank" rel="noopener noreferrer">IPO Korea 일정 원문</a>
+                <span class="muted">일정 소스</span>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <section class="empty">
+        <strong>이번 달 IPO 일정이 없습니다.</strong>
+        <div class="muted">일일 선별 작업이 실데이터 모드로 실행되면 IPO 일정도 함께 저장됩니다.</div>
+      </section>
+    {% endif %}
+  </section>
+{% endblock %}

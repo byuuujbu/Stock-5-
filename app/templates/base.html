@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>국내 주식 선별 대시보드</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --text: #1f2933;
+        --muted: #667085;
+        --line: #d9dee7;
+        --accent: #145ea8;
+        --good: #b42318;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", "Malgun Gothic", Arial, sans-serif;
+        letter-spacing: 0;
+      }
+      header {
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+      .bar, main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+      .bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        gap: 16px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.2;
+      }
+      nav {
+        display: flex;
+        gap: 8px;
+      }
+      nav a {
+        color: var(--muted);
+        text-decoration: none;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+      nav a.active {
+        color: #ffffff;
+        background: var(--accent);
+      }
+      main {
+        padding: 28px 0 48px;
+      }
+      .meta {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .stock-list {
+        display: grid;
+        gap: 14px;
+      }
+      .stock {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+      }
+      .stock-head {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) repeat(3, minmax(120px, auto));
+        align-items: start;
+        gap: 16px;
+      }
+      .name {
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .ticker {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      .metric-label {
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
+      .metric-value {
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .positive {
+        color: var(--good);
+      }
+      .articles {
+        margin-top: 16px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+        display: grid;
+        gap: 8px;
+      }
+      .article {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+      }
+      .article a {
+        color: var(--accent);
+        text-decoration: none;
+        overflow-wrap: anywhere;
+      }
+      .empty {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 28px;
+      }
+      .section {
+        margin-top: 28px;
+      }
+      .ipo-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 12px;
+      }
+      .ipo {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+      }
+      .ipo-title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .ipo-name {
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .badge {
+        color: var(--accent);
+        background: #eaf2fb;
+        border-radius: 999px;
+        padding: 3px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .ipo-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      th, td {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        font-size: 14px;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+        background: #fbfcfd;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      td a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      @media (max-width: 820px) {
+        .bar, .meta {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .stock-head {
+          grid-template-columns: 1fr 1fr;
+        }
+        .article {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 520px) {
+        .bar, main {
+          width: min(100% - 20px, 1180px);
+        }
+        .stock-head {
+          grid-template-columns: 1fr;
+        }
+        th, td {
+          padding: 11px 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="bar">
+        <h1>국내 주식 선별 대시보드</h1>
+        <nav>
+          <a href="/" class="{{ 'active' if active == 'dashboard' else '' }}">Dashboard</a>
+          <a href="/history" class="{{ 'active' if active == 'history' else '' }}">History</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

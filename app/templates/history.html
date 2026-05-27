@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="meta">
+    <div>
+      <h2>History</h2>
+      <div class="muted">일자별 선별 결과</div>
+    </div>
+  </section>
+
+  {% if runs %}
+    <table>
+      <thead>
+        <tr>
+          <th>일자</th>
+          <th>선정 종목 수</th>
+          <th>모드</th>
+          <th>저장 시각</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in runs %}
+          <tr>
+            <td><a href="/history/{{ run.run_date }}">{{ run.run_date }}</a></td>
+            <td>{{ run.stock_count }}</td>
+            <td>{{ run.mode }}</td>
+            <td>{{ run.created_at }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <section class="empty">
+      <strong>히스토리가 없습니다.</strong>
+      <div class="muted">일일 선별 작업이 실행되면 이곳에 날짜별 결과가 쌓입니다.</div>
+    </section>
+  {% endif %}
+{% endblock %}
+
