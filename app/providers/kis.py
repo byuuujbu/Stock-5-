@@ -36,6 +36,7 @@ class KisMarketDataProvider:
         *,
         min_interval_seconds: float = 0.12,
         token_cache_path: Path | None = None,
+        token_retry_wait_seconds: float = 65.0,
     ):
         self.base_url = base_url.rstrip("/")
         self.app_key = app_key
@@ -43,6 +44,7 @@ class KisMarketDataProvider:
         self.universe_csv = universe_csv
         self.rate_limiter = RateLimiter(min_interval_seconds)
         self.token_cache_path = token_cache_path
+        self.token_retry_wait_seconds = token_retry_wait_seconds
         self._access_token: str | None = None
 
     def fetch_quotes(self) -> list[StockQuote]:
@@ -76,13 +78,23 @@ class KisMarketDataProvider:
             self._access_token = cached
             return cached
         payload = {"grant_type": "client_credentials", "appkey": self.app_key, "appsecret": self.app_secret}
-        data = http_json(f"{self.base_url}/oauth2/tokenP", method="POST", body=payload)
+        data = self._request_new_token(payload)
         token = data.get("access_token")
         if not token:
             raise RuntimeError(f"KIS token response missing access_token: {data}")
         self._access_token = token
         self._write_cached_token(token, data)
         return token
+
+    def _request_new_token(self, payload: dict[str, str]) -> dict[str, Any]:
+        try:
+            return http_json(f"{self.base_url}/oauth2/tokenP", method="POST", body=payload)
+        except RuntimeError as exc:
+            message = str(exc)
+            if "EGW00133" not in message and "1분당 1회" not in message:
+                raise
+            time.sleep(self.token_retry_wait_seconds)
+            return http_json(f"{self.base_url}/oauth2/tokenP", method="POST", body=payload)
 
     def _read_cached_token(self) -> str | None:
         if self.token_cache_path is None:
