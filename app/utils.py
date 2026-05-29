@@ -3,6 +3,7 @@ from __future__ import annotations
 import html
 import json
 import re
+import socket
 import time
 import urllib.error
 import urllib.parse
@@ -66,6 +67,9 @@ def http_json(
         except urllib.error.URLError as exc:
             if attempt == retries:
                 raise RuntimeError(f"Network error from {url}: {exc}") from exc
+        except (TimeoutError, socket.timeout) as exc:
+            if attempt == retries:
+                raise RuntimeError(f"Timeout from {url}: {exc}") from exc
         time.sleep(backoff_seconds * (2**attempt))
     raise RuntimeError(f"HTTP request failed after retries: {url}")
 
@@ -94,5 +98,8 @@ def http_text(
         except urllib.error.URLError as exc:
             if attempt == retries:
                 raise RuntimeError(f"Network error from {url}: {exc}") from exc
+        except (TimeoutError, socket.timeout) as exc:
+            if attempt == retries:
+                raise RuntimeError(f"Timeout from {url}: {exc}") from exc
         time.sleep(backoff_seconds * (2**attempt))
     raise RuntimeError(f"HTTP request failed after retries: {url}")

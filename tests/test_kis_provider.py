@@ -43,3 +43,21 @@ def test_token_retries_kis_one_per_minute_error(monkeypatch):
     assert provider._token() == "token"
     assert len(calls) == 3
     assert sleeps == [0.01, 0.01]
+
+
+def test_fetch_quote_skips_quote_request_failures(monkeypatch):
+    monkeypatch.setattr(kis_module.KisMarketDataProvider, "_token", lambda self: "token")
+
+    def fake_http_json(*args, **kwargs):
+        raise RuntimeError("Timeout from quote endpoint")
+
+    monkeypatch.setattr(kis_module, "http_json", fake_http_json)
+    provider = kis_module.KisMarketDataProvider(
+        "https://openapi.koreainvestment.com:9443",
+        "app-key",
+        "app-secret",
+        Path("data/universe.csv"),
+        min_interval_seconds=0,
+    )
+
+    assert provider._fetch_quote({"market": "KOSPI", "ticker": "005930", "name": "삼성전자"}) is None

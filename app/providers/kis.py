@@ -152,11 +152,14 @@ class KisMarketDataProvider:
             "FID_PERIOD_DIV_CODE": "D",
             "FID_ORG_ADJ_PRC": "1",
         }
-        data = http_json(
-            f"{self.base_url}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice",
-            params=params,
-            headers=headers,
-        )
+        try:
+            data = http_json(
+                f"{self.base_url}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice",
+                params=params,
+                headers=headers,
+            )
+        except RuntimeError:
+            return None
         candles = _sorted_candles(data.get("output2") or [])
         if len(candles) < 2:
             return None
