@@ -37,6 +37,7 @@ class KisMarketDataProvider:
         min_interval_seconds: float = 0.12,
         token_cache_path: Path | None = None,
         token_retry_wait_seconds: float = 65.0,
+        token_max_attempts: int = 3,
     ):
         self.base_url = base_url.rstrip("/")
         self.app_key = app_key
@@ -45,6 +46,7 @@ class KisMarketDataProvider:
         self.rate_limiter = RateLimiter(min_interval_seconds)
         self.token_cache_path = token_cache_path
         self.token_retry_wait_seconds = token_retry_wait_seconds
+        self.token_max_attempts = max(1, token_max_attempts)
         self._access_token: str | None = None
 
     def fetch_quotes(self) -> list[StockQuote]:
@@ -87,14 +89,20 @@ class KisMarketDataProvider:
         return token
 
     def _request_new_token(self, payload: dict[str, str]) -> dict[str, Any]:
-        try:
-            return http_json(f"{self.base_url}/oauth2/tokenP", method="POST", body=payload)
-        except RuntimeError as exc:
-            message = str(exc)
-            if "EGW00133" not in message and "1분당 1회" not in message:
-                raise
-            time.sleep(self.token_retry_wait_seconds)
-            return http_json(f"{self.base_url}/oauth2/tokenP", method="POST", body=payload)
+        last_error: RuntimeError | None = None
+        for attempt in range(self.token_max_attempts):
+            try:
+                return http_json(f"{self.base_url}/oauth2/tokenP", method="POST", body=payload)
+            except RuntimeError as exc:
+                message = str(exc)
+                if "EGW00133" not in message and "1분당 1회" not in message:
+                    raise
+                last_error = exc
+                if attempt < self.token_max_attempts - 1:
+                    time.sleep(self.token_retry_wait_seconds)
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("KIS token request failed without an error.")
 
     def _read_cached_token(self) -> str | None:
         if self.token_cache_path is None:

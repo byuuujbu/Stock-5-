@@ -22,7 +22,7 @@ def test_token_retries_kis_one_per_minute_error(monkeypatch):
 
     def fake_http_json(url, *, method="GET", body=None, **kwargs):
         calls.append((url, method, body))
-        if len(calls) == 1:
+        if len(calls) < 3:
             raise RuntimeError(
                 "HTTP 403 from https://openapi.koreainvestment.com:9443/oauth2/tokenP: "
                 '{"error_code":"EGW00133","error_description":"접근토큰 발급 잠시 후 다시 시도하세요(1분당 1회)"}'
@@ -41,5 +41,5 @@ def test_token_retries_kis_one_per_minute_error(monkeypatch):
     )
 
     assert provider._token() == "token"
-    assert len(calls) == 2
-    assert sleeps == [0.01]
+    assert len(calls) == 3
+    assert sleeps == [0.01, 0.01]
